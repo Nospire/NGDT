@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(go build:*)",
+      "Bash(cp ngdt:*)",
+      "Read(//home/nospire/work/gdt-orchestrator/**)",
+      "Bash(docker compose:*)",
+      "Bash(curl -s -X POST http://localhost:8000/api/session/start -H 'Content-Type: application/json' -d '{\"client_type\":\"ngdt\"}')",
+      "Bash(python3 -c ':*)",
+      "Bash(GOOS=linux GOARCH=amd64 go build:*)"
+    ]
+  }
+}
