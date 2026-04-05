@@ -58,14 +58,23 @@ func main() {
 		os.Exit(1)
 	}
 
-	// 2. Prime sudo credentials interactively so the TUI never has to ask.
-	sudoV := exec.Command("sudo", "-v")
-	sudoV.Stdin = os.Stdin
-	sudoV.Stdout = os.Stdout
-	sudoV.Stderr = os.Stderr
-	if err := sudoV.Run(); err != nil {
-		fmt.Fprintf(os.Stderr, "error: sudo -v failed: %v\n", err)
-		os.Exit(1)
+	// 2. Prime sudo credentials — use GDT_SUDO_PASS from env if available.
+	if pass := os.Getenv("GDT_SUDO_PASS"); pass != "" {
+		sudoV := exec.Command("sudo", "-S", "-k", "-p", "", "-v")
+		sudoV.Stdin = strings.NewReader(pass + "\n")
+		if err := sudoV.Run(); err != nil {
+			fmt.Fprintf(os.Stderr, "error: sudo -v failed: %v\n", err)
+			os.Exit(1)
+		}
+	} else {
+		sudoV := exec.Command("sudo", "-v")
+		sudoV.Stdin = os.Stdin
+		sudoV.Stdout = os.Stdout
+		sudoV.Stderr = os.Stderr
+		if err := sudoV.Run(); err != nil {
+			fmt.Fprintf(os.Stderr, "error: sudo -v failed: %v\n", err)
+			os.Exit(1)
+		}
 	}
 
 	// 3. Detect TTY mode before launching TUI.
