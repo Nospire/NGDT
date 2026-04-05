@@ -38,10 +38,18 @@ if [[ "$PASSWD_STATUS" == "L" || "$PASSWD_STATUS" == "NP" ]]; then
     echo ""
 fi
 
-# Запрос sudo пароля
-echo "Введите пароль sudo для пользователя deck:"
-read -rs GDT_SUDO_PASS
-echo ""
+# Читаем пароль напрямую с TTY
+if [[ ! -t 0 ]]; then
+    # Нет TTY (curl | bash) — перезапускаем скрипт из файла
+    SCRIPT_PATH="$(mktemp /tmp/ngdt-install-XXXXX.sh)"
+    curl -fsSL https://gdt.geekcom.org/tui -o "$SCRIPT_PATH"
+    chmod +x "$SCRIPT_PATH"
+    exec bash "$SCRIPT_PATH"
+fi
+
+printf "Введите пароль sudo для пользователя deck: " > /dev/tty
+IFS= read -rs GDT_SUDO_PASS < /dev/tty
+printf "\n" > /dev/tty
 
 if ! printf '%s\n' "$GDT_SUDO_PASS" | sudo -S -k -p '' true >/dev/null 2>&1; then
     err "Неверный пароль sudo."
