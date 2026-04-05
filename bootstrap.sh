@@ -5,7 +5,23 @@ INSTALL_DIR="${HOME}/.scripts/ngdt"
 REPO="Nospire/NGDT"
 BASE_URL="https://github.com/${REPO}/releases/latest/download"
 
-# ===== Output helpers (ASCII only — TTY has no unicode/color) =====
+# ===== Language detection =====
+if [[ -n "${DISPLAY:-}" || -n "${WAYLAND_DISPLAY:-}" ]]; then
+    LANG_MODE="ru"
+else
+    LANG_MODE="en"
+fi
+
+msg() {
+    local ru="$1" en="$2"
+    if [[ "$LANG_MODE" == "ru" ]]; then
+        printf "%s\n" "$ru"
+    else
+        printf "%s\n" "$en"
+    fi
+}
+
+# ===== Output helpers =====
 ok()   { printf "[OK] %s\n" "$*"; }
 info() { printf "[..] %s\n" "$*"; }
 err()  { printf "[ERR] %s\n" "$*" >&2; }
@@ -27,17 +43,22 @@ fi
 
 # ===== Desktop mode warning =====
 if [[ -n "${DISPLAY:-}" || -n "${WAYLAND_DISPLAY:-}" ]]; then
-    echo "WARNING: You appear to be running in desktop mode."
+    msg "ВНИМАНИЕ: вы в режиме рабочего стола." \
+        "WARNING: You appear to be running in desktop mode."
     echo ""
-    echo "NGDT is designed for TTY (press Ctrl+Alt+F4 to switch)."
+    msg "NGDT предназначен для TTY (Ctrl+Alt+F4)." \
+        "NGDT is designed for TTY (press Ctrl+Alt+F4 to switch)."
     echo ""
-    echo "For desktop mode, use GDT instead:"
+    msg "Для рабочего стола используйте GDT:" \
+        "For desktop mode, use GDT instead:"
     echo "  https://github.com/Nospire/GDT/releases/latest"
     echo ""
-    printf "Continue anyway? [y/N]: "
+    printf "[..] "
+    msg "Продолжить всё равно? [y/N]: " \
+        "Continue anyway? [y/N]: "
     IFS= read -r REPLY </dev/tty || true
     if [[ "${REPLY:-n}" != "y" && "${REPLY:-n}" != "Y" ]]; then
-        echo "Aborted."
+        msg "Отмена." "Aborted."
         exit 0
     fi
     echo ""
@@ -46,55 +67,60 @@ fi
 # ===== Check/create deck password =====
 PASSWD_STATUS="$(passwd -S deck 2>/dev/null | awk '{print $2}')"
 if [[ "$PASSWD_STATUS" == "L" || "$PASSWD_STATUS" == "NP" ]]; then
-    echo "No password set for user deck."
-    echo "A password is required for system updates."
-    echo "Please create a password:"
+    msg "Нет пароля для пользователя deck." \
+        "No password set for user deck."
+    msg "Пароль нужен для системных операций." \
+        "A password is required for system updates."
+    msg "Придумайте пароль:" \
+        "Please create a password:"
     echo ""
     passwd deck
     echo ""
 fi
 
 # ===== Read sudo password =====
-printf "Enter sudo password (hidden): " >/dev/tty
+printf "[..] "
+msg "Введите пароль sudo (скрыто): " \
+    "Enter sudo password (hidden): "
 stty -echo </dev/tty
 IFS= read -r GDT_SUDO_PASS </dev/tty || true
 stty echo </dev/tty
 printf "\n" >/dev/tty
 
 if [[ -z "$GDT_SUDO_PASS" ]]; then
-    err "Empty password."
+    err "$(msg "Пустой пароль." "Empty password.")"
     exit 1
 fi
 
 if ! printf '%s\n' "$GDT_SUDO_PASS" | sudo -S -k -p '' true >/dev/null 2>&1; then
-    err "Wrong sudo password."
+    err "$(msg "Неверный пароль sudo." "Wrong sudo password.")"
     exit 1
 fi
 
-ok "sudo activated"
+ok "$(msg "sudo активирован" "sudo activated")"
 export GDT_SUDO_PASS
 
 # ===== Download binaries =====
-info "Creating ${INSTALL_DIR}..."
+info "$(msg "Создаём ${INSTALL_DIR}..." "Creating ${INSTALL_DIR}...")"
 mkdir -p "$INSTALL_DIR"
 
-info "Downloading ngdt..."
+info "$(msg "Скачиваем ngdt..." "Downloading ngdt...")"
 curl -fsSL --progress-bar -o "$INSTALL_DIR/ngdt" "${BASE_URL}/ngdt"
 chmod +x "$INSTALL_DIR/ngdt"
-ok "ngdt ready"
+ok "$(msg "ngdt готов" "ngdt ready")"
 
-info "Downloading gdt-tui..."
+info "$(msg "Скачиваем gdt-tui..." "Downloading gdt-tui...")"
 curl -fsSL --progress-bar -o "$INSTALL_DIR/gdt-tui" "${BASE_URL}/gdt-tui"
 chmod +x "$INSTALL_DIR/gdt-tui"
-ok "gdt-tui ready"
+ok "$(msg "gdt-tui готов" "gdt-tui ready")"
 
-info "Downloading sing-box..."
+info "$(msg "Скачиваем sing-box..." "Downloading sing-box...")"
 curl -fsSL --progress-bar -o "$INSTALL_DIR/sing-box" "${BASE_URL}/sing-box"
 chmod +x "$INSTALL_DIR/sing-box"
-ok "sing-box ready"
+ok "$(msg "sing-box готов" "sing-box ready")"
 
 echo ""
-ok "Installation complete. Starting update..."
+ok "$(msg "Установка завершена. Запускаем..." "Installation complete. Starting update...")"
 echo ""
 
 # ===== Launch TUI =====
