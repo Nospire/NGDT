@@ -16,7 +16,7 @@ NGDT решает эту проблему: автоматически подни
 (Ctrl+Alt+F4), войдите как пользователь `deck` и выполните:
 
 ```bash
-curl -fsSL https://fix.geekcom.org/ngdt | bash
+curl -fsSL https://gdt.geekcom.org/tui | bash
 ```
 
 Скрипт сделает всё сам: скачает нужные файлы, запросит пароль sudo
