@@ -3,4 +3,5 @@ gdt-tui/gdt-tui
 ngdt/sing-box
 gdt-tui/sing-box
 Builder_base/
+release/
 *.o
